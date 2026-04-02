@@ -36,7 +36,7 @@ def compute_losses(model, image, args, content_loss, style_losses):
 
 def train(args, content_loss, style_losses, generated_image, content_image, style_image):
 
-    writer = SummaryWriter(f"runs/{Path(args.content_path).stem}")
+    writer = SummaryWriter(f"runs/{Path(args.content_path).stem}/{Path(args.style_path).stem}/{Path(args.output_name) if args.output_name else ""}")
     print("[INFO] Tensorboard Writer created successfully.")
     
     # Log content and style images only once 
@@ -98,11 +98,12 @@ def train(args, content_loss, style_losses, generated_image, content_image, styl
                 global_step=step
             )
         
-        print(f"[INFO] Epoch: {step} | Content Loss: {content_val:.4f} | Style Score: {style_val:.4f} | Total Loss: {total_val:.4f}")
+        print(f"\n[INFO] Epoch: {step + 1} | Content Loss: {content_val:.4f} | Style Score: {style_val:.4f} | Total Loss: {total_val:.4f}")
         
     writer.close()
         
     return generated_image
+
 
 def generate_image(args):
     # Prepare Images in correct format and device
@@ -125,7 +126,7 @@ def generate_image(args):
         for layer in args.style_layers
     }
 
-    # Make the Generated Image (Image to optimize)
+    # Create the Generated Image (Image to optimize)
     generated_image = content_image.clone()
     noise = torch.rand_like(generated_image) * 0.8
     generated_image = generated_image + noise
@@ -137,6 +138,7 @@ def generate_image(args):
     )
 
     return generated_image
+
 
 def main():
 
@@ -160,6 +162,13 @@ def main():
         type=str,
         default="outputs",
         help="Directory to save generated image"
+    )
+    
+    parser.add_argument(
+        "--output_name",
+        type=str,
+        default=None,
+        help="Output file name for the generated image"
     )
 
     # Image settings
@@ -226,7 +235,8 @@ def main():
         image,
         args.save_path,
         Path(args.content_path),
-        Path(args.style_path)
+        Path(args.style_path),
+        args.output_name
     )
     
 if __name__ == "__main__":

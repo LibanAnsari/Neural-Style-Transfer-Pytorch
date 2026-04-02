@@ -79,7 +79,7 @@ def img_path_to_pil(path: str | Path):
     
     return img
 
-def save_image(generated_image: torch.tensor, save_path: str | Path, content_image_path: str | Path, style_image_path: str | Path):
+def save_image(generated_image: torch.tensor, save_path: str | Path, content_image_path: str | Path, style_image_path: str | Path, filename: str):
     """Saves an image to the given path."""
 
     save_path = Path(save_path)
@@ -93,7 +93,11 @@ def save_image(generated_image: torch.tensor, save_path: str | Path, content_ima
     to_pil = ToPILImage()
     image_pil = to_pil(img.squeeze().cpu())
 
-    filename = f"{content_image_path.stem}-{style_image_path.stem}.jpg"
+    if not filename:
+        filename = f"{content_image_path.stem}-{style_image_path.stem}.jpg"
+    else:
+        filename += ".jpg"
+        
     full_path = save_path / filename
 
     image_pil.save(full_path)

@@ -142,10 +142,10 @@ Lower values of the content-to-style ratio (α/β) produce more stylized results
 The images below illustrate the effect of increasing the style weight. Each output is generated over **25 iterations** with `alpha = 1.0` and `beta` varying across `1e2`, `1e3`, `1e4`, and `1e5` (from left to right), following the comparison setup used in the original paper.
 
 <div align="center">
-    <img src="outputs/script_runs/louvre/1e2d" width="200"/>
-    <img src="outputs/script_runs/louvre/1e3d" width="200"/>
-    <img src="outputs/script_runs/louvre/1e4d" width="200"/>
-    <img src="outputs/script_runs/louvre/1e5d" width="200"/>
+    <img src="outputs/script_runs/louvre/1e2d.jpg" width="200"/>
+    <img src="outputs/script_runs/louvre/1e3d.jpg" width="200"/>
+    <img src="outputs/script_runs/louvre/1e4d.jpg" width="200"/>
+    <img src="outputs/script_runs/louvre/1e5d.jpg" width="200"/>
 </div>
 
 ### Total Variation Regularization

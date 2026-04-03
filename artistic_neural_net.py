@@ -9,6 +9,7 @@ from pathlib import Path
 from utils import utils, transforms
 from tqdm.auto import tqdm
 import argparse
+import os
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -17,6 +18,7 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 print(f"[INFO] Using device: {device}")
 
 model = vgg_model.to(device)
+model.eval()
 print(f"[INFO] Model Initialized successfully.")
 
 def compute_losses(model, image, args, content_loss, style_losses):
@@ -35,8 +37,9 @@ def compute_losses(model, image, args, content_loss, style_losses):
     return content_val, style_val, total_val
 
 def train(args, content_loss, style_losses, generated_image, content_image, style_image):
-
-    writer = SummaryWriter(f"runs/{Path(args.content_path).stem}/{Path(args.style_path).stem}/{Path(args.output_name) if args.output_name else ""}")
+    run_name = args.output_name if args.output_name else "default"
+    log_dir = f"runs/{Path(args.content_path).stem}/{Path(args.style_path).stem}/{run_name}"
+    writer = SummaryWriter(log_dir=log_dir)
     print("[INFO] Tensorboard Writer created successfully.")
     
     # Log content and style images only once 
@@ -107,7 +110,7 @@ def train(args, content_loss, style_losses, generated_image, content_image, styl
 
 def generate_image(args):
     # Prepare Images in correct format and device
-    content_transforms, style_transforms = transforms.get_transforms(args.IMG_SIZE)
+    content_transforms, style_transforms = transforms.get_transforms(args.img_size)
 
     content_image = utils.img_path_to_pil(args.content_path)
     content_image = content_transforms(content_image).to(device)
@@ -142,7 +145,8 @@ def generate_image(args):
 
 def main():
 
-    parser = argparse.ArgumentParser(description="Parser for Artistic Neural Style Transfer")
+    parser = argparse.ArgumentParser(description="Artistic Neural Style Transfer CLI🎨",
+                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     # Paths
     parser.add_argument(
@@ -163,9 +167,8 @@ def main():
         default="outputs",
         help="Directory to save generated image"
     )
-    
     parser.add_argument(
-        "--output_name",
+        "--output-name",
         type=str,
         default=None,
         help="Output file name for the generated image"
@@ -173,10 +176,10 @@ def main():
 
     # Image settings
     parser.add_argument(
-        "--IMG_SIZE",
+        "--img-size",
         type=int,
         default=512,
-        help="Size to which images will be resized"
+        help="Resize images to this size"
     )
 
     # Training settings
@@ -190,13 +193,13 @@ def main():
         "--alpha",
         type=float,
         default=1.0,
-        help="Weight for content loss"
+        help="Content loss weight"
     )
     parser.add_argument(
         "--beta",
         type=float,
         default=1e3,
-        help="Weight for style loss"
+        help="Style loss weight"
     )
 
     # Layers
@@ -204,13 +207,13 @@ def main():
         "--content-layer",
         type=str,
         default="conv4_1",
-        help="Layer used for content loss"
+        help="Content loss layer, single layer only"
     )
     parser.add_argument(
         "--style-layers",
         nargs="+",
         default=["conv1_1", "conv2_1", "conv3_1", "conv4_1", "conv5_1"],
-        help="Layers used for style loss"
+        help="Style loss layers, space separated"
     )
 
     # Style weight per layer
@@ -218,7 +221,7 @@ def main():
         "--wl",
         type=float,
         default=None,
-        help="Weight per style layer (default = 1/num_layers)"
+        help="Weight per style layer (default = 1 / num_layers)"
     )
 
     args = parser.parse_args()
@@ -226,6 +229,8 @@ def main():
     # Set default wl if not provided
     if args.wl is None:
         args.wl = 1.0 / len(args.style_layers)
+
+    os.makedirs(args.save_path, exist_ok=True)
 
     # Run generation
     image = generate_image(args)

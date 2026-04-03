@@ -1,5 +1,7 @@
+numpy
+matplotlib
+Pillow
+tqdm
 torch
 torchvision
 tensorboard
-tqdm
-Pillow

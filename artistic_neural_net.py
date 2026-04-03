@@ -1,25 +1,34 @@
-import torch
-from torch import nn
-from models.model import vgg_model
-from losses.content import ContentLoss
-from losses.style import StyleLoss
-from losses.tv_loss import tv_loss
-from torch.utils.tensorboard import SummaryWriter
 from pathlib import Path
-from utils import utils, transforms
-from tqdm.auto import tqdm
 import argparse
 import os
 
 import warnings
 warnings.filterwarnings("ignore")
 
-device = 'cuda' if torch.cuda.is_available() else 'cpu' 
-print(f"[INFO] Using device: {device}")
+# Define globals
+device = None
+model = None
 
-model = vgg_model.to(device)
-model.eval()
-print(f"[INFO] Model Initialized successfully.")
+# Heavy imports will be stored here or imported when needed
+def init_globals():
+    global device, model, torch, nn, ContentLoss, StyleLoss, tv_loss, SummaryWriter, utils, transforms, tqdm
+    import torch
+    from torch import nn
+    from models.model import vgg_model
+    from losses.content import ContentLoss
+    from losses.style import StyleLoss
+    from losses.tv_loss import tv_loss
+    from torch.utils.tensorboard import SummaryWriter
+    from utils import utils, transforms
+    from tqdm.auto import tqdm
+    
+    device = 'cuda' if torch.cuda.is_available() else 'cpu' 
+    print(f"[INFO] Using device: {device}")
+
+    model = vgg_model.to(device)
+    model.eval()
+    print(f"[INFO] Model Initialized successfully.")
+
 
 def compute_losses(model, image, args, content_loss, style_losses):
     features = model(image.unsqueeze(0))
@@ -35,6 +44,7 @@ def compute_losses(model, image, args, content_loss, style_losses):
     total_val = args.alpha * content_val + args.beta * style_val
 
     return content_val, style_val, total_val
+
 
 def train(args, content_loss, style_losses, generated_image, content_image, style_image):
     run_name = args.output_name if args.output_name else "default"
@@ -144,7 +154,6 @@ def generate_image(args):
 
 
 def main():
-
     parser = argparse.ArgumentParser(description="Artistic Neural Style Transfer CLI🎨",
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
@@ -221,10 +230,13 @@ def main():
         "--wl",
         type=float,
         default=None,
-        help="Weight per style layer (default = 1 / num_layers)"
+        help="Weight per style layer (1 / num_layers)"
     )
 
     args = parser.parse_args()
+
+    # Initialize heavy libraries and globals only after parsing args
+    init_globals()
 
     # Set default wl if not provided
     if args.wl is None:

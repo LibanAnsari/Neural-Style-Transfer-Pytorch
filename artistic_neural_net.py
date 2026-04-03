@@ -1,6 +1,7 @@
 from pathlib import Path
 import argparse
 import os
+import sys
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -47,8 +48,7 @@ def compute_losses(model, image, args, content_loss, style_losses):
 
 
 def train(args, content_loss, style_losses, generated_image, content_image, style_image):
-    run_name = args.output_name if args.output_name else "default"
-    log_dir = f"runs/{Path(args.content_path).stem}/{Path(args.style_path).stem}/{run_name}"
+    log_dir = f"runs/{Path(args.content_path).stem}/{Path(args.style_path).stem}/{args.output_name}"
     writer = SummaryWriter(log_dir=log_dir)
     print("[INFO] Tensorboard Writer created successfully.")
     
@@ -179,7 +179,7 @@ def main():
     parser.add_argument(
         "--output-name",
         type=str,
-        default=None,
+        default="generated_art",
         help="Output file name for the generated image"
     )
 
@@ -234,6 +234,15 @@ def main():
     )
 
     args = parser.parse_args()
+
+    # Validate paths before loading libraries
+    if not os.path.exists(args.content_path):
+        print(f"[ERROR] Content image not found: {args.content_path}")
+        sys.exit(1)
+        
+    if not os.path.exists(args.style_path):
+        print(f"[ERROR] Style image not found: {args.style_path}")
+        sys.exit(1)
 
     # Initialize heavy libraries and globals only after parsing args
     init_globals()
